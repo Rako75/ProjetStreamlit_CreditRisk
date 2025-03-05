@@ -4,9 +4,9 @@ import numpy as np
 import joblib
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 
-# Charger le modèle sauvegardé
+# Charger le modèle et le scaler
 model = joblib.load('arbre_decision_model.joblib')
-scaler = StandardScaler()
+scaler = joblib.load('scaler.pkl')  # Charger le scaler sauvegardé
 
 # Fonction pour effectuer la prédiction
 def predict_client(default, age, income, loan_amount, int_rate, emp_length, home_ownership, loan_intent, loan_grade, credit_hist_length):
@@ -23,8 +23,8 @@ def predict_client(default, age, income, loan_amount, int_rate, emp_length, home
         'cb_person_cred_hist_length': [credit_hist_length]
     })
     
-    # Appliquer la même normalisation
-    data_normalized = scaler.transform(data)
+    # Appliquer la même normalisation avec le scaler préalablement ajusté
+    data_normalized = scaler.transform(data)  # Utilisation du scaler chargé
     
     # Effectuer la prédiction
     prediction = model.predict(data_normalized)
