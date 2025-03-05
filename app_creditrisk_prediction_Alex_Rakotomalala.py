@@ -28,6 +28,23 @@ scaler = StandardScaler()
 # Titre de l'application
 st.title("Prédiction du Risque de Crédit")
 
+# Sous-titre avec une description
+st.subheader("Description de l'Application")
+st.write("""
+Cette application permet d'évaluer le risque de défaut d'un client en fonction de ses caractéristiques financières et personnelles. 
+Les utilisateurs peuvent entrer des informations telles que l'âge, le revenu, le montant du prêt demandé, ainsi que d'autres facteurs importants.
+L'application utilise un modèle de machine learning basé sur un **arbre de décision** pour prédire si un client présente un risque élevé de défaut de paiement sur son prêt.
+
+### Fonctionnalités :
+- Entrez les informations du client pour obtenir une prédiction en temps réel.
+- Visualisez des graphiques d'analyse des données pour mieux comprendre les relations entre les variables.
+- Découvrez les performances du modèle avec des courbes ROC et des analyses détaillées.
+
+### Comment utiliser :
+1. Remplissez les champs avec les informations demandées.
+2. Cliquez sur "Prédire" pour obtenir le résultat en temps réel.
+""")
+
 # Demande des informations au client
 st.header("Entrez les caractéristiques du client")
 
