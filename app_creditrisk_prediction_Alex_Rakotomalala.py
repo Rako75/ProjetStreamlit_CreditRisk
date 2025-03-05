@@ -23,6 +23,12 @@ df['loan_intent'] = encoder_loan_intent.transform(df['loan_intent'])
 df['loan_grade'] = encoder_loan_grade.transform(df['loan_grade'])
 df['cb_person_default_on_file'] = encoder_default_on_file.transform(df['cb_person_default_on_file'])
 
+# Sélectionner uniquement les colonnes numériques pour le calcul de la corrélation
+numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+
+# Appliquer le scaler aux données numériques
+scaler = joblib.load('scaler.pkl')
+
 # Fonction de transformation des entrées de l'utilisateur
 def encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default_on_file):
     try:
@@ -45,6 +51,7 @@ def encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default
     except ValueError:
         default_on_file_encoded = -1  # Valeur par défaut si la catégorie est inconnue
 
+    # Retourner les 4 caractéristiques encodées
     return np.array([home_ownership_encoded, loan_intent_encoded, loan_grade_encoded, default_on_file_encoded])
 
 # Interface Streamlit
@@ -72,7 +79,7 @@ st.pyplot(plt)
 # Matrice de corrélation
 st.subheader("Matrice de Corrélation")
 plt.figure(figsize=(12, 8))
-sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
+sns.heatmap(df[numeric_columns].corr(), annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
 plt.title("Heatmap des Corrélations")
 st.pyplot(plt)
 
@@ -106,9 +113,14 @@ cb_person_default_on_file = st.selectbox("Présence de défaut de paiement", ["Y
 # Encodage des données de l'utilisateur
 user_input = encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default_on_file)
 
-# Standardisation de l'entrée utilisateur
-scaler = joblib.load('scaler.pkl')  # Charger le scaler
-user_input_scaled = scaler.transform([user_input])
+# Créer un DataFrame avec l'entrée de l'utilisateur pour appliquer le scaler correctement
+user_input_df = pd.DataFrame([user_input], columns=["person_home_ownership", "loan_intent", "loan_grade", "cb_person_default_on_file"])
+
+# Ajouter les autres caractéristiques à partir du DataFrame d'origine, en s'assurant qu'elles sont dans le bon ordre
+user_input_full = df.drop(columns=["loan_status"]).iloc[0, :len(user_input_df.columns)].values.reshape(1, -1)
+
+# Appliquer le scaler
+user_input_scaled = scaler.transform(user_input_full)
 
 # Prédiction avec l'arbre de décision
 prediction = tree.predict(user_input_scaled)
