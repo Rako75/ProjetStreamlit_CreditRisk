@@ -12,15 +12,15 @@ scaler = joblib.load('scaler.pkl')
 st.title("Prédiction du statut de prêt")
 
 # Saisie des données utilisateur
-age = st.number_input("Âge", min_value=18, max_value=100, value=30)
-income = st.number_input("Revenu", min_value=0, max_value=1000000, value=50000)
-loan_amount = st.number_input("Montant du prêt", min_value=0, max_value=1000000, value=10000)
-int_rate = st.number_input("Taux d'intérêt", min_value=0.0, max_value=50.0, value=5.0)
-emp_length = st.number_input("Ancienneté de l'emploi (en années)", min_value=0, max_value=50, value=5)
-home_ownership = st.selectbox("Type de logement", ["OWN", "MORTGAGE", "RENT"])
+person_age  = st.number_input("Âge", min_value=18, max_value=100, value=30)
+person_income = st.number_input("Revenu", min_value=0, max_value=1000000, value=50000)
+person_home_ownership = st.selectbox("Type de logement", ["OWN", "MORTGAGE", "RENT"])
+person_emp_length = st.number_input("Ancienneté de l'emploi (en années)", min_value=0, max_value=50, value=5)
 loan_intent = st.selectbox("Intentions du prêt", ["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION"])
 loan_grade = st.selectbox("Grade du prêt", ["A", "B", "C", "D", "E", "F", "G"])
-credit_hist_length = st.number_input("Longueur de l'historique de crédit (en années)", min_value=0, max_value=50, value=5)
+loan_amount = st.number_input("Montant du prêt", min_value=0, max_value=1000000, value=10000)
+loan_int_rate = st.number_input("Taux d'intérêt", min_value=0.0, max_value=50.0, value=5.0)
+cb_person_cred_hist_length = st.number_input("Longueur de l'historique de crédit (en années)", min_value=0, max_value=50, value=5)
 
 # Colonnes manquantes : Ajout de valeurs par défaut pour les colonnes qui ne sont pas saisies
 cb_person_default_on_file = 0  # Par exemple, un défaut (0) par défaut
