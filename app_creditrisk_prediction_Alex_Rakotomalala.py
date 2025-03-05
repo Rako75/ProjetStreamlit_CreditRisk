@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 # Charger le modèle et le scaler
 model = joblib.load("arbre_decision_model.joblib")
-scaler = joblib.load("scaler.joblib")  # Charger le scaler utilisé pendant l'entraînement
+scaler = joblib.load("scaler.pkl")  # Charger le scaler utilisé pendant l'entraînement (scaler.pkl)
 
 # Charger le dataset
 df = pd.read_csv("credit_risk_dataset.csv", sep=";")
