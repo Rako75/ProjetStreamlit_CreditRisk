@@ -59,7 +59,7 @@ loan_int_rate = st.number_input("Taux d'intérêt du prêt", min_value=0.01, max
 home_ownership = st.selectbox("Type de logement", ["OWN", "MORTGAGE", "RENT"])
 loan_intent = st.selectbox("Intention du prêt", ["PERSONAL", "EDUCATION", "MEDICAL", "VENTURE"])
 loan_grade = st.selectbox("Note de crédit", ["A", "B", "C", "D", "E", "F", "G"])
-default_on_file = st.selectbox("Présence de défaut sur le fichier", ["Y", "N"])
+default_on_file = st.selectbox("Présence de défaut de paiement sur le fichier", ["Y", "N"])
 
 # Préparation des caractéristiques pour la prédiction
 data = {
