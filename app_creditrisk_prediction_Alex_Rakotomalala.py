@@ -4,8 +4,6 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import LabelEncoder
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 
 # Charger les encodeurs et le modèle de l'arbre de décision
@@ -24,22 +22,22 @@ def encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default
     try:
         home_ownership_encoded = encoder_home_ownership.transform([home_ownership])[0]
     except ValueError:
-        home_ownership_encoded = -1
+        home_ownership_encoded = -1  # Valeur par défaut si la catégorie est inconnue
 
     try:
         loan_intent_encoded = encoder_loan_intent.transform([loan_intent])[0]
     except ValueError:
-        loan_intent_encoded = -1
+        loan_intent_encoded = -1  # Valeur par défaut si la catégorie est inconnue
 
     try:
         loan_grade_encoded = encoder_loan_grade.transform([loan_grade])[0]
     except ValueError:
-        loan_grade_encoded = -1
+        loan_grade_encoded = -1  # Valeur par défaut si la catégorie est inconnue
 
     try:
         default_on_file_encoded = encoder_default_on_file.transform([cb_person_default_on_file])[0]
     except ValueError:
-        default_on_file_encoded = -1
+        default_on_file_encoded = -1  # Valeur par défaut si la catégorie est inconnue
 
     return np.array([home_ownership_encoded, loan_intent_encoded, loan_grade_encoded, default_on_file_encoded])
 
