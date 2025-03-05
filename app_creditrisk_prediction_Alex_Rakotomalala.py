@@ -2,136 +2,54 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 
-# Charger les encodeurs et le modèle de l'arbre de décision
-encoder_home_ownership = joblib.load('encoder_home_ownership.pkl')
-encoder_loan_intent = joblib.load('encoder_loan_intent.pkl')
-encoder_loan_grade = joblib.load('encoder_loan_grade.pkl')
-encoder_default_on_file = joblib.load('encoder_default_on_file.pkl')
+# Charger le modèle
+model = joblib.load("arbre_decision_model.joblib")
 
-tree = joblib.load('arbre_decision_model.joblib')
-
-# Charger les données
+# Charger le dataset
 df = pd.read_csv("credit_risk_dataset.csv", sep=";")
 
-# Appliquer l'encodage sur les colonnes catégorielles du DataFrame
-df['person_home_ownership'] = encoder_home_ownership.transform(df['person_home_ownership'])
-df['loan_intent'] = encoder_loan_intent.transform(df['loan_intent'])
-df['loan_grade'] = encoder_loan_grade.transform(df['loan_grade'])
-df['cb_person_default_on_file'] = encoder_default_on_file.transform(df['cb_person_default_on_file'])
+# Encoder les variables catégorielles
+from sklearn.preprocessing import LabelEncoder
 
-# Sélectionner uniquement les colonnes numériques pour le calcul de la corrélation
-numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+encoder = LabelEncoder()
+df['person_home_ownership'] = encoder.fit_transform(df['person_home_ownership'])
+df['loan_intent'] = encoder.fit_transform(df['loan_intent'])
+df['loan_grade'] = encoder.fit_transform(df['loan_grade'])
+df['cb_person_default_on_file'] = encoder.fit_transform(df['cb_person_default_on_file'])
 
-# Appliquer le scaler aux données numériques
-scaler = joblib.load('scaler.pkl')
+# Séparer les features et la cible
+X = df.drop(columns=['loan_status'])
+y = df['loan_status']
 
-# Fonction de transformation des entrées de l'utilisateur
-def encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default_on_file):
-    try:
-        home_ownership_encoded = encoder_home_ownership.transform([home_ownership])[0]
-    except ValueError:
-        home_ownership_encoded = -1  # Valeur par défaut si la catégorie est inconnue
+# Standardisation des données
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
-    try:
-        loan_intent_encoded = encoder_loan_intent.transform([loan_intent])[0]
-    except ValueError:
-        loan_intent_encoded = -1  # Valeur par défaut si la catégorie est inconnue
-
-    try:
-        loan_grade_encoded = encoder_loan_grade.transform([loan_grade])[0]
-    except ValueError:
-        loan_grade_encoded = -1  # Valeur par défaut si la catégorie est inconnue
-
-    try:
-        default_on_file_encoded = encoder_default_on_file.transform([cb_person_default_on_file])[0]
-    except ValueError:
-        default_on_file_encoded = -1  # Valeur par défaut si la catégorie est inconnue
-
-    # Retourner les 4 caractéristiques encodées
-    return np.array([home_ownership_encoded, loan_intent_encoded, loan_grade_encoded, default_on_file_encoded])
-
-# Interface Streamlit
+# Créer une interface pour l'utilisateur
 st.title("Prédiction du Risque de Crédit")
-st.subheader("Cette application permet de prédire si un client présente un risque de défaut de paiement en fonction de ses caractéristiques.")
+st.write("Entrez les informations suivantes pour prédire si un prêt sera remboursé ou non.")
 
-# Afficher des graphiques
-st.subheader("Exploration des distributions (histogrammes)")
-plt.figure(figsize=(15, 6))
-for i, col in enumerate(["person_age", "person_income", "cb_person_cred_hist_length"]):
-    plt.subplot(1, 3, i+1)
-    sns.histplot(df[col], bins=30, kde=True, color='blue')
-    plt.title(f"Distribution de {col}")
-st.pyplot(plt)
+# Interface utilisateur pour entrer les informations
+person_age = st.number_input("Âge", min_value=18, max_value=100, value=30)
+person_income = st.number_input("Revenu mensuel", min_value=0, value=5000)
+loan_int_rate = st.number_input("Taux d'intérêt du prêt", min_value=0.0, value=10.0)
+person_home_ownership = st.selectbox("Type de logement", ['0', '1', '2', '3'])  # Valeurs encodées
+loan_intent = st.selectbox("Objectif du prêt", ['0', '1', '2'])  # Valeurs encodées
+loan_grade = st.selectbox("Note du prêt", ['0', '1', '2', '3', '4', '5'])  # Valeurs encodées
+cb_person_default_on_file = st.selectbox("Historique de défaut", ['0', '1'])  # Valeurs encodées
 
-# Détection des valeurs aberrantes (boxplots)
-st.subheader("Détection des valeurs aberrantes (boxplots)")
-plt.figure(figsize=(15, 6))
-for i, col in enumerate(["person_income", "loan_amnt"]):
-    plt.subplot(1, 2, i+1)
-    sns.boxplot(x=df[col], color='orange')
-    plt.title(f"Boxplot de {col}")
-st.pyplot(plt)
+# Formater les données pour le modèle
+user_data = np.array([person_age, person_income, loan_int_rate, person_home_ownership, loan_intent, loan_grade, cb_person_default_on_file]).reshape(1, -1)
+user_data_scaled = scaler.transform(user_data)
 
-# Matrice de corrélation
-st.subheader("Matrice de Corrélation")
-plt.figure(figsize=(12, 8))
-sns.heatmap(df[numeric_columns].corr(), annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
-plt.title("Heatmap des Corrélations")
-st.pyplot(plt)
+# Prédiction
+prediction = model.predict(user_data_scaled)
 
-# Répartition de l'âge en fonction du statut du prêt
-st.subheader("Répartition de l'âge en fonction du statut du prêt")
-plt.figure(figsize=(10, 5))
-sns.histplot(data=df, x="person_age", hue="loan_status", bins=30, kde=True, palette="viridis")
-plt.title("Répartition de l'âge en fonction du statut du prêt")
-st.pyplot(plt)
-
-# Relation entre le taux d'intérêt et le statut du prêt
-st.subheader("Relation entre le taux d'intérêt et le statut du prêt")
-plt.figure(figsize=(10, 5))
-sns.boxplot(x=df["loan_status"], y=df["loan_int_rate"], palette="Set2")
-plt.title("Taux d'intérêt en fonction du statut du prêt")
-st.pyplot(plt)
-
-# Influence du type de logement sur le risque de crédit
-st.subheader("Influence du type de logement sur le risque de crédit")
-plt.figure(figsize=(8, 5))
-sns.countplot(data=df, x="person_home_ownership", hue="loan_status", palette="coolwarm")
-plt.title("Type de logement et statut du prêt")
-st.pyplot(plt)
-
-# Formulaire de saisie des caractéristiques du client
-home_ownership = st.selectbox("Type de logement", ["OWN", "MORTGAGE", "RENT"])
-loan_intent = st.selectbox("Intention du prêt", ["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION", "MEDICAL", "VENTURE"])
-loan_grade = st.selectbox("Note de crédit", ["A", "B", "C", "D", "E", "F", "G"])
-cb_person_default_on_file = st.selectbox("Présence de défaut de paiement", ["Y", "N"])
-
-# Encodage des données de l'utilisateur
-user_input = encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default_on_file)
-
-# Créer un DataFrame avec l'entrée de l'utilisateur pour appliquer le scaler correctement
-user_input_df = pd.DataFrame([user_input], columns=["person_home_ownership", "loan_intent", "loan_grade", "cb_person_default_on_file"])
-
-# Alignement des colonnes : les autres caractéristiques doivent être extraites de df pour compléter l'entrée
-# Assurez-vous que les colonnes de l'entrée utilisateur correspondent à celles d'entraînement
-user_input_full = np.concatenate([user_input, np.zeros(len(numeric_columns) - len(user_input))])
-
-# Appliquer le scaler uniquement sur les données numériques (qui doivent être sur 11 colonnes)
-user_input_scaled = scaler.transform([user_input_full])
-
-# Prédiction avec l'arbre de décision
-prediction = tree.predict(user_input_scaled)
-
-# Afficher le résultat de la prédiction
-if prediction == 0:
-    st.write("Le client n'est pas à risque de défaut de paiement.")
+# Afficher la prédiction
+if prediction == 1:
+    st.write("Le client présente un risque de défaut.")
 else:
-    st.write("Le client est à risque de défaut de paiement.")
-
-# Affichage des probabilités (si nécessaire)
-probability = tree.predict_proba(user_input_scaled)[:, 1]  # Probabilité de défaut de paiement (classe 1)
-st.write(f"Probabilité de défaut de paiement : {probability[0]:.2f}")
+    st.write("Le client ne présente pas de risque de défaut.")
