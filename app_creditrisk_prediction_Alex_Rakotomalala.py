@@ -24,7 +24,6 @@ cb_person_cred_hist_length = st.number_input("Longueur de l'historique de crédi
 
 # Colonnes manquantes : Ajout de valeurs par défaut pour les colonnes qui ne sont pas saisies
 cb_person_default_on_file = 0  # Par exemple, un défaut (0) par défaut
-loan_percent_income = income / loan_amount if loan_amount != 0 else 0  # Calcul d'un pourcentage par défaut
 
 # Préparer les données pour la prédiction, en ajoutant les colonnes manquantes
 data = pd.DataFrame({
