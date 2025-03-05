@@ -27,15 +27,15 @@ cb_person_default_on_file = 0  # Par exemple, un défaut (0) par défaut
 
 # Préparer les données pour la prédiction, en ajoutant les colonnes manquantes
 data = pd.DataFrame({
-    'person_age': [age],
-    'person_income': [income],
+    'person_age': [person_age],
+    'person_income': [person_income],
     'loan_amnt': [loan_amount],
-    'loan_int_rate': [int_rate],
-    'person_emp_length': [emp_length],
-    'person_home_ownership': [home_ownership],
+    'loan_int_rate': [loan_int_rate],
+    'person_emp_length': [person_emp_length],
+    'person_home_ownership': [person_home_ownership],
     'loan_intent': [loan_intent],
     'loan_grade': [loan_grade],
-    'cb_person_cred_hist_length': [credit_hist_length],
+    'cb_person_cred_hist_length': [cb_person_cred_hist_length],
     'cb_person_default_on_file': [cb_person_default_on_file],  # Ajout de la colonne manquante
     'loan_percent_income': [loan_percent_income]  # Ajout de la colonne manquante
 })
