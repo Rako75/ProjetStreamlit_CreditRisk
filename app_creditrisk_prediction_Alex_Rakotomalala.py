@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 from sklearn.preprocessing import LabelEncoder
+from sklearn.impute import SimpleImputer
 
 # Charger le modèle et le scaler sauvegardés
 model = joblib.load('arbre_decision_model.joblib')
@@ -25,12 +26,6 @@ credit_hist_length = st.number_input("Longueur de l'historique de crédit (en an
 cb_person_default_on_file = 0  # Par exemple, un défaut (0) par défaut
 loan_percent_income = income / loan_amount if loan_amount != 0 else 0  # Calcul d'un pourcentage par défaut
 
-# Encoder les variables catégorielles
-encoder = LabelEncoder()
-home_ownership = encoder.fit(["OWN", "MORTGAGE", "RENT"]).transform([home_ownership])[0]
-loan_intent = encoder.fit(["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION"]).transform([loan_intent])[0]
-loan_grade = encoder.fit(["A", "B", "C", "D", "E", "F", "G"]).transform([loan_grade])[0]
-
 # Préparer les données pour la prédiction, en ajoutant les colonnes manquantes
 data = pd.DataFrame({
     'person_age': [age],
@@ -45,6 +40,22 @@ data = pd.DataFrame({
     'cb_person_default_on_file': [cb_person_default_on_file],  # Ajout de la colonne manquante
     'loan_percent_income': [loan_percent_income]  # Ajout de la colonne manquante
 })
+
+# Traitement des valeurs manquantes avec SimpleImputer
+imputer = SimpleImputer(strategy="median")
+
+# Liste des colonnes numériques
+numeric_columns = ['person_emp_length', 'loan_int_rate']
+
+# Appliquer l'imputation pour les colonnes numériques
+data[numeric_columns] = imputer.fit_transform(data[numeric_columns])
+
+# Encoder les variables catégorielles
+encoder = LabelEncoder()
+data['person_home_ownership'] = encoder.fit(["OWN", "MORTGAGE", "RENT"]).transform([data['person_home_ownership'][0]])
+data['loan_intent'] = encoder.fit(["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION"]).transform([data['loan_intent'][0]])
+data['loan_grade'] = encoder.fit(["A", "B", "C", "D", "E", "F", "G"]).transform([data['loan_grade'][0]])
+data['cb_person_default_on_file'] = encoder.fit(["0", "1"]).transform([str(data['cb_person_default_on_file'][0])])
 
 # Appliquer la normalisation
 data_normalized = scaler.transform(data)
