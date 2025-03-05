@@ -20,7 +20,7 @@ tree = joblib.load('arbre_decision_model.joblib')
 df = pd.read_csv("credit_risk_dataset.csv", sep=";")
 
 # Fonction de transformation des entrées de l'utilisateur
-def encode_user_input(home_ownership, loan_intent, loan_grade, default_on_file):
+def encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default_on_file):
     try:
         home_ownership_encoded = encoder_home_ownership.transform([home_ownership])[0]
     except ValueError:
@@ -37,7 +37,7 @@ def encode_user_input(home_ownership, loan_intent, loan_grade, default_on_file):
         loan_grade_encoded = -1
 
     try:
-        default_on_file_encoded = encoder_default_on_file.transform([default_on_file])[0]
+        default_on_file_encoded = encoder_default_on_file.transform([cb_person_default_on_file])[0]
     except ValueError:
         default_on_file_encoded = -1
 
@@ -97,10 +97,10 @@ st.pyplot(plt)
 home_ownership = st.selectbox("Type de logement", ["OWN", "MORTGAGE", "RENT"])
 loan_intent = st.selectbox("Intention du prêt", ["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION", "MEDICAL", "VENTURE"])
 loan_grade = st.selectbox("Note de crédit", ["A", "B", "C", "D", "E", "F", "G"])
-default_on_file = st.selectbox("Présence de défaut de paiement", ["Y", "N"])
+cb_person_default_on_file = st.selectbox("Présence de défaut de paiement", ["Y", "N"])
 
 # Encodage des données de l'utilisateur
-user_input = encode_user_input(home_ownership, loan_intent, loan_grade, default_on_file)
+user_input = encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default_on_file)
 
 # Standardisation de l'entrée utilisateur
 scaler = joblib.load('scaler.pkl')  # Charger le scaler
