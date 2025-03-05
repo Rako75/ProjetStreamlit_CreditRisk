@@ -116,11 +116,12 @@ user_input = encode_user_input(home_ownership, loan_intent, loan_grade, cb_perso
 # Créer un DataFrame avec l'entrée de l'utilisateur pour appliquer le scaler correctement
 user_input_df = pd.DataFrame([user_input], columns=["person_home_ownership", "loan_intent", "loan_grade", "cb_person_default_on_file"])
 
-# Ajouter les autres caractéristiques à partir du DataFrame d'origine, en s'assurant qu'elles sont dans le bon ordre
-user_input_full = df.drop(columns=["loan_status"]).iloc[0, :len(user_input_df.columns)].values.reshape(1, -1)
+# Alignement des colonnes : les autres caractéristiques doivent être extraites de df pour compléter l'entrée
+# Assurez-vous que les colonnes de l'entrée utilisateur correspondent à celles d'entraînement
+user_input_full = np.concatenate([user_input, np.zeros(len(numeric_columns) - 4)])
 
-# Appliquer le scaler
-user_input_scaled = scaler.transform(user_input_full)
+# Appliquer le scaler uniquement sur les données numériques (qui doivent être sur 11 colonnes)
+user_input_scaled = scaler.transform([user_input_full])
 
 # Prédiction avec l'arbre de décision
 prediction = tree.predict(user_input_scaled)
