@@ -21,13 +21,17 @@ loan_intent = st.selectbox("Intentions du prêt", ["PERSONAL", "DEBTCONSOLIDATIO
 loan_grade = st.selectbox("Grade du prêt", ["A", "B", "C", "D", "E", "F", "G"])
 credit_hist_length = st.number_input("Longueur de l'historique de crédit (en années)", min_value=0, max_value=50, value=5)
 
+# Colonnes manquantes : Ajout de valeurs par défaut pour les colonnes qui ne sont pas saisies
+cb_person_default_on_file = 0  # Par exemple, un défaut (0) par défaut
+loan_percent_income = income / loan_amount if loan_amount != 0 else 0  # Calcul d'un pourcentage par défaut
+
 # Encoder les variables catégorielles
 encoder = LabelEncoder()
 home_ownership = encoder.fit(["OWN", "MORTGAGE", "RENT"]).transform([home_ownership])[0]
 loan_intent = encoder.fit(["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION"]).transform([loan_intent])[0]
 loan_grade = encoder.fit(["A", "B", "C", "D", "E", "F", "G"]).transform([loan_grade])[0]
 
-# Préparer les données pour la prédiction
+# Préparer les données pour la prédiction, en ajoutant les colonnes manquantes
 data = pd.DataFrame({
     'person_age': [age],
     'person_income': [income],
@@ -37,7 +41,9 @@ data = pd.DataFrame({
     'person_home_ownership': [home_ownership],
     'loan_intent': [loan_intent],
     'loan_grade': [loan_grade],
-    'cb_person_cred_hist_length': [credit_hist_length]
+    'cb_person_cred_hist_length': [credit_hist_length],
+    'cb_person_default_on_file': [cb_person_default_on_file],  # Ajout de la colonne manquante
+    'loan_percent_income': [loan_percent_income]  # Ajout de la colonne manquante
 })
 
 # Appliquer la normalisation
