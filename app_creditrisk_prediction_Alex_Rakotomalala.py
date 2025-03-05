@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 # Charger le modèle
 model = joblib.load("arbre_decision_model.joblib")
@@ -11,9 +10,7 @@ model = joblib.load("arbre_decision_model.joblib")
 # Charger le dataset
 df = pd.read_csv("credit_risk_dataset.csv", sep=";")
 
-# Encoder les variables catégorielles
-from sklearn.preprocessing import LabelEncoder
-
+# Encoder les variables catégorielles (appliqué aussi aux nouvelles données)
 encoder = LabelEncoder()
 df['person_home_ownership'] = encoder.fit_transform(df['person_home_ownership'])
 df['loan_intent'] = encoder.fit_transform(df['loan_intent'])
@@ -42,7 +39,18 @@ loan_grade = st.selectbox("Note du prêt", ['0', '1', '2', '3', '4', '5'])  # Va
 cb_person_default_on_file = st.selectbox("Historique de défaut", ['0', '1'])  # Valeurs encodées
 
 # Formater les données pour le modèle
-user_data = np.array([person_age, person_income, loan_int_rate, person_home_ownership, loan_intent, loan_grade, cb_person_default_on_file]).reshape(1, -1)
+user_data = np.array([person_age, person_income, loan_int_rate, person_home_ownership, loan_intent, loan_grade, cb_person_default_on_file])
+
+# Appliquer les mêmes transformations (encodage et mise à l'échelle)
+user_data = user_data.reshape(1, -1)
+
+# Encoder les variables catégorielles
+user_data[0, 3] = encoder.transform([user_data[0, 3]])  # person_home_ownership
+user_data[0, 4] = encoder.transform([user_data[0, 4]])  # loan_intent
+user_data[0, 5] = encoder.transform([user_data[0, 5]])  # loan_grade
+user_data[0, 6] = encoder.transform([user_data[0, 6]])  # cb_person_default_on_file
+
+# Standardisation des nouvelles données
 user_data_scaled = scaler.transform(user_data)
 
 # Prédiction
