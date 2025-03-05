@@ -1,68 +1,78 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
-from sklearn.preprocessing import LabelEncoder
-from sklearn.impute import SimpleImputer
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
-# Charger le modèle et le scaler sauvegardés
+# Charger le modèle
 model = joblib.load('arbre_decision_model.joblib')
-scaler = joblib.load('scaler.pkl')
 
-# Interface utilisateur
-st.title("Prédiction du statut de prêt")
+# Charger le dataset
+@st.cache_data
+def load_data():
+    df = pd.read_csv("credit_risk_dataset.csv", sep=";")
+    df.fillna(df.median(numeric_only=True), inplace=True)
+    encoder = LabelEncoder()
+    for col in ['person_home_ownership', 'loan_intent', 'loan_grade', 'cb_person_default_on_file']:
+        df[col] = encoder.fit_transform(df[col])
+    return df
 
-# Saisie des données utilisateur
-person_age  = st.number_input("Âge", min_value=18, max_value=100, value=30)
-person_income = st.number_input("Revenu", min_value=0, max_value=1000000, value=50000)
-person_home_ownership = st.selectbox("Type de logement", ["OWN", "MORTGAGE", "RENT"])
-person_emp_length = st.number_input("Ancienneté de l'emploi (en années)", min_value=0, max_value=50, value=5)
-loan_intent = st.selectbox("Intentions du prêt", ["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION"])
-loan_grade = st.selectbox("Grade du prêt", ["A", "B", "C", "D", "E", "F", "G"])
-loan_amount = st.number_input("Montant du prêt", min_value=0, max_value=1000000, value=10000)
-loan_int_rate = st.number_input("Taux d'intérêt", min_value=0.0, max_value=50.0, value=5.0)
-cb_person_cred_hist_length = st.number_input("Longueur de l'historique de crédit (en années)", min_value=0, max_value=50, value=5)
+df = load_data()
 
-# Colonnes manquantes : Ajout de valeurs par défaut pour les colonnes qui ne sont pas saisies
-cb_person_default_on_file = 0  # Par exemple, un défaut (0) par défaut
+# Fonction de prédiction
+def predict_risk(features):
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform([features])
+    prediction = model.predict(scaled_features)
+    return "Risque élevé" if prediction[0] == 1 else "Risque faible"
 
-# Préparer les données pour la prédiction, en ajoutant les colonnes manquantes
-data = pd.DataFrame({
-    'person_age': [person_age],
-    'person_income': [person_income],
-    'loan_amnt': [loan_amount],
-    'loan_int_rate': [loan_int_rate],
-    'person_emp_length': [person_emp_length],
-    'person_home_ownership': [person_home_ownership],
-    'loan_intent': [loan_intent],
-    'loan_grade': [loan_grade],
-    'cb_person_cred_hist_length': [cb_person_cred_hist_length],
-    'cb_person_default_on_file': [cb_person_default_on_file],  # Ajout de la colonne manquante
-})
+# Interface Streamlit
+st.title("Prédiction du Risque de Crédit")
+st.write("Entrez les caractéristiques du client pour obtenir une prédiction.")
 
-# Traitement des valeurs manquantes avec SimpleImputer
-imputer = SimpleImputer(strategy="median")
+# Entrée utilisateur
+person_age = st.number_input("Âge", min_value=18, max_value=100, value=30)
+person_income = st.number_input("Revenu annuel", min_value=1000, max_value=1000000, value=50000)
+person_home_ownership = st.selectbox("Type de logement", ["RENT", "OWN", "MORTGAGE", "OTHER"])
+person_emp_length = st.number_input("Années d'emploi", min_value=0, max_value=50, value=5)
+loan_intent = st.selectbox("But du prêt", ["PERSONAL", "EDUCATION", "MEDICAL", "VENTURE", "HOMEIMPROVEMENT", "DEBTCONSOLIDATION"])
+loan_grade = st.selectbox("Grade du prêt", ["D", "B", "C", "A", "E", "F", "G"])
+loan_amnt = st.number_input("Montant du prêt", min_value=100, max_value=50000, value=5000)
+loan_int_rate = st.number_input("Taux d'intérêt", min_value=0.0, max_value=50.0, value=10.0)
+loan_percent_income = st.number_input("Pourcentage du revenu consacré au prêt", min_value=0.0, max_value=1.0, value=0.2)
+cb_person_default_on_file = st.selectbox("Défaut de paiement antérieur", ["Y", "N"])
+cb_person_cred_hist_length = st.number_input("Longueur de l'historique de crédit", min_value=0, max_value=30, value=5)
 
-# Liste des colonnes numériques
-numeric_columns = ['person_emp_length', 'loan_int_rate']
-
-# Appliquer l'imputation pour les colonnes numériques
-data[numeric_columns] = imputer.fit_transform(data[numeric_columns])
-
-# Encoder les variables catégorielles
+# Encodage des valeurs catégoriques
 encoder = LabelEncoder()
-data['person_home_ownership'] = encoder.fit(["OWN", "MORTGAGE", "RENT"]).transform([data['person_home_ownership'][0]])
-data['loan_intent'] = encoder.fit(["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION"]).transform([data['loan_intent'][0]])
-data['loan_grade'] = encoder.fit(["A", "B", "C", "D", "E", "F", "G"]).transform([data['loan_grade'][0]])
-data['cb_person_default_on_file'] = encoder.fit(["0", "1"]).transform([str(data['cb_person_default_on_file'][0])])
+person_home_ownership = encoder.fit_transform([person_home_ownership])[0]
+loan_intent = encoder.fit_transform([loan_intent])[0]
+loan_grade = encoder.fit_transform([loan_grade])[0]
+cb_person_default_on_file = encoder.fit_transform([cb_person_default_on_file])[0]
 
-# Appliquer la normalisation
-data_normalized = scaler.transform(data)
+# Prédiction
+if st.button("Prédire le Risque"):
+    features = [
+        person_age, person_income, person_home_ownership, person_emp_length,
+        loan_intent, loan_grade, loan_amnt, loan_int_rate,
+        loan_percent_income, cb_person_default_on_file, cb_person_cred_hist_length
+    ]
+    prediction = predict_risk(features)
+    st.write(f"Résultat de la prédiction : {prediction}")
 
-# Bouton pour effectuer la prédiction
-if st.button("Prédire le statut du prêt"):
-    # Prédire le statut du prêt
-    prediction = model.predict(data_normalized)
-    if prediction == 1:
-        st.write("Le client est à risque de défaut.")
-    else:
-        st.write("Le client n'est pas à risque de défaut.")
+# Visualisations interactives
+st.subheader("Analyse Exploratoire des Données")
+
+# Histogramme
+st.write("### Distribution des variables clés")
+fig, ax = plt.subplots()
+sns.histplot(df['person_age'], bins=30, kde=True, color='blue', ax=ax)
+st.pyplot(fig)
+
+# Heatmap
+st.write("### Corrélation entre les variables")
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, ax=ax)
+st.pyplot(fig)
