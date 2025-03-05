@@ -37,7 +37,6 @@ data = pd.DataFrame({
     'loan_grade': [loan_grade],
     'cb_person_cred_hist_length': [cb_person_cred_hist_length],
     'cb_person_default_on_file': [cb_person_default_on_file],  # Ajout de la colonne manquante
-    'loan_percent_income': [loan_percent_income]  # Ajout de la colonne manquante
 })
 
 # Traitement des valeurs manquantes avec SimpleImputer
