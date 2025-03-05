@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+from sklearn.preprocessing import LabelEncoder
 
 # Charger le modèle et le scaler sauvegardés
 model = joblib.load('arbre_decision_model.joblib')
