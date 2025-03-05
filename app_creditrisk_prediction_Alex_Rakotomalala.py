@@ -82,7 +82,7 @@ input_data = pd.DataFrame({
 input_data = scaler.transform(input_data)
 
 # Chargement du modèle et prédiction
-model = joblib.load('credit_risk_model.joblib')
+model = joblib.load('arbre_decision_model.joblib')
 prediction = model.predict(input_data)
 
 # Affichage du résultat de la prédiction
