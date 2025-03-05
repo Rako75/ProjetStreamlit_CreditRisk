@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import plotly.express as px
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
@@ -81,19 +82,28 @@ input_data = pd.DataFrame({
 input_data = scaler.transform(input_data)
 
 # Chargement du modèle et prédiction
-model = joblib.load('arbre_decision_model.joblib')
+model = joblib.load('credit_risk_model.joblib')
 prediction = model.predict(input_data)
 
 # Affichage du résultat de la prédiction
 st.write("### Résultat de la prédiction:")
 st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
-# Visualisation des données
-st.subheader("Exploration des Données")
-fig, ax = plt.subplots(figsize=(10, 5))
-sns.histplot(df['person_age'], bins=30, kde=True, ax=ax)
-st.pyplot(fig)
+# Visualisation dynamique avec Plotly
+st.subheader("Visualisation dynamique")
 
-fig, ax = plt.subplots(figsize=(10, 5))
-sns.boxplot(x=df["loan_amnt"], ax=ax)
-st.pyplot(fig)
+# Créer un graphique en fonction des choix de l'utilisateur
+fig = px.scatter(df, x="loan_int_rate", y="loan_amnt", color="loan_grade",
+                 title="Relation entre le taux d'intérêt et le montant du prêt",
+                 labels={"loan_int_rate": "Taux d'intérêt (%)", "loan_amnt": "Montant du prêt ($)"})
+
+# Mettre à jour le graphique avec les choix de l'utilisateur
+fig.update_traces(marker=dict(size=12, opacity=0.6), selector=dict(mode='markers'))
+
+# Affichage du graphique interactif
+st.plotly_chart(fig)
+
+# Afficher un histogramme dynamique basé sur l'âge
+fig2 = px.histogram(df, x="person_age", title="Distribution des âges des clients",
+                    nbins=30, labels={"person_age": "Âge du client"})
+st.plotly_chart(fig2)
