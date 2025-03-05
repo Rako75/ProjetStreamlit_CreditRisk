@@ -21,9 +21,21 @@ df['loan_intent'] = encoder.fit_transform(df['loan_intent'])
 df['loan_grade'] = encoder.fit_transform(df['loan_grade'])
 df['cb_person_default_on_file'] = encoder.fit_transform(df['cb_person_default_on_file'])
 
+home_ownership_mapping = {'RENT': 3, 'OWN': 2, 'MORTGAGE': 0, 'OTHER': 1}
+loan_intent_mapping = {'PERSONAL': 4, 'EDUCATION': 1, 'MEDICAL': 3, 'VENTURE': 5, 'HOMEIMPROVEMENT': 2, 'DEBTCONSOLIDATION': 0}
+loan_grade_mapping = {'D': 3, 'B': 1, 'C': 2, 'A': 0, 'E': 4, 'F': 5, 'G': 6}
+cb_person_default_on_file_mapping = {'Y': 1, 'N': 0}
+
+df['person_home_ownership'] = df['person_home_ownership'].map(home_ownership_mapping)
+df['loan_intent'] = df['loan_intent'].map(loan_intent_mapping)
+df['loan_grade'] = df['loan_grade'].map(loan_grade_mapping)
+df['cb_person_default_on_file'] = df['cb_person_default_on_file'].map(cb_person_default_on_file_mapping)
+
 X = df.drop(columns=['loan_status'])
 y = df['loan_status']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Normalisation des données
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
@@ -50,26 +62,29 @@ loan_percent_income = st.sidebar.slider("Ratio prêt/revenu", min_value=0.0, max
 default_history = st.sidebar.selectbox("Historique de défaut de paiement", ['Y', 'N'])
 cred_hist_length = st.sidebar.slider("Longueur de l'historique de crédit", min_value=0, max_value=30, value=10)
 
-# Encodage des entrées
+# Encodage des entrées utilisateur
 input_data = pd.DataFrame({
     'person_age': [age],
     'person_income': [income],
-    'person_home_ownership': [encoder.transform([home_ownership])[0]],
+    'person_home_ownership': [home_ownership_mapping.get(home_ownership, -1)],
     'person_emp_length': [emp_length],
-    'loan_intent': [encoder.transform([loan_intent])[0]],
-    'loan_grade': [encoder.transform([loan_grade])[0]],
+    'loan_intent': [loan_intent_mapping.get(loan_intent, -1)],
+    'loan_grade': [loan_grade_mapping.get(loan_grade, -1)],
     'loan_amnt': [loan_amnt],
     'loan_int_rate': [loan_int_rate],
     'loan_percent_income': [loan_percent_income],
-    'cb_person_default_on_file': [encoder.transform([default_history])[0]],
+    'cb_person_default_on_file': [cb_person_default_on_file_mapping.get(default_history, -1)],
     'cb_person_cred_hist_length': [cred_hist_length]
 })
 
+# Normalisation de l'entrée
 input_data = scaler.transform(input_data)
 
-# Prédiction
-model = joblib.load('credit_risk_model.joblib')
+# Chargement du modèle et prédiction
+model = joblib.load('arbre_decision_model.joblib')
 prediction = model.predict(input_data)
+
+# Affichage du résultat de la prédiction
 st.write("### Résultat de la prédiction:")
 st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
