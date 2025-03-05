@@ -1,151 +1,71 @@
-import pandas as pd
-import numpy as np
-import joblib
 import streamlit as st
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.preprocessing import LabelEncoder
+import joblib
+import numpy as np
 
-# Chargement du modèle sauvegardé
-model = joblib.load('arbre_decision_model.joblib')
+# Charger les encodeurs et les modèles
+encoder_home_ownership = joblib.load('encoder_home_ownership.pkl')
+encoder_loan_intent = joblib.load('encoder_loan_intent.pkl')
+encoder_loan_grade = joblib.load('encoder_loan_grade.pkl')
+encoder_default_on_file = joblib.load('encoder_default_on_file.pkl')
 
-# Chargement du dataset pour l'encoding
-df = pd.read_csv("credit_risk_dataset.csv", sep=";")
+log_reg = joblib.load('log_reg_model.pkl')
+tree = joblib.load('tree_model.pkl')
 
-# Encodage des variables catégorielles pour la prédiction
-encoder = LabelEncoder()
-df['person_home_ownership'] = encoder.fit_transform(df['person_home_ownership'])
-df['loan_intent'] = encoder.fit_transform(df['loan_intent'])
-df['loan_grade'] = encoder.fit_transform(df['loan_grade'])
-df['cb_person_default_on_file'] = encoder.fit_transform(df['cb_person_default_on_file'])
+# Fonction de transformation des entrées de l'utilisateur
+def encode_user_input(home_ownership, loan_intent, loan_grade, default_on_file):
+    # Encodage de l'input utilisateur
+    try:
+        home_ownership_encoded = encoder_home_ownership.transform([home_ownership])[0]
+    except ValueError:
+        home_ownership_encoded = -1  # Valeur par défaut si label inconnu
 
-# Standardisation du modèle
-scaler = StandardScaler()
+    try:
+        loan_intent_encoded = encoder_loan_intent.transform([loan_intent])[0]
+    except ValueError:
+        loan_intent_encoded = -1
 
-# Création de l'interface Streamlit
+    try:
+        loan_grade_encoded = encoder_loan_grade.transform([loan_grade])[0]
+    except ValueError:
+        loan_grade_encoded = -1
 
-# Titre de l'application
+    try:
+        default_on_file_encoded = encoder_default_on_file.transform([default_on_file])[0]
+    except ValueError:
+        default_on_file_encoded = -1
+
+    return np.array([home_ownership_encoded, loan_intent_encoded, loan_grade_encoded, default_on_file_encoded])
+
+# Interface Streamlit
 st.title("Prédiction du Risque de Crédit")
+st.subheader("Cette application permet de prédire si un client présente un risque de défaut de paiement en fonction de ses caractéristiques.")
 
-# Sous-titre avec une description
-st.subheader("Description de l'Application")
-st.write("""
-Cette application permet d'évaluer le risque de défaut d'un client en fonction de ses caractéristiques financières et personnelles. 
-Les utilisateurs peuvent entrer des informations telles que l'âge, le revenu, le montant du prêt demandé, ainsi que d'autres facteurs importants.
-L'application utilise un modèle de machine learning basé sur un **arbre de décision** pour prédire si un client présente un risque élevé de défaut de paiement sur son prêt.
-
-### Fonctionnalités :
-- Entrez les informations du client pour obtenir une prédiction en temps réel.
-- Visualisez des graphiques d'analyse des données pour mieux comprendre les relations entre les variables.
-- Découvrez les performances du modèle avec des courbes ROC et des analyses détaillées.
-
-### Comment utiliser :
-1. Remplissez les champs avec les informations demandées.
-2. Cliquez sur "Prédire" pour obtenir le résultat en temps réel.
-""")
-
-# Demande des informations au client
-st.header("Entrez les caractéristiques du client")
-
-# Formulaire de saisie
-age = st.number_input("Âge du client", min_value=18, max_value=100, value=30)
-income = st.number_input("Revenu annuel du client", min_value=1000, max_value=1000000, value=30000)
-emp_length = st.number_input("Longueur de l'expérience professionnelle (en années)", min_value=0, max_value=40, value=5)
-loan_amnt = st.number_input("Montant du prêt demandé", min_value=1000, max_value=500000, value=50000)
-loan_int_rate = st.number_input("Taux d'intérêt du prêt", min_value=0.01, max_value=30.0, value=5.0)
-
-# Choix des variables catégorielles
+# Formulaire de saisie des caractéristiques du client
 home_ownership = st.selectbox("Type de logement", ["OWN", "MORTGAGE", "RENT"])
-loan_intent = st.selectbox("Intention du prêt", ["PERSONAL", "EDUCATION", "MEDICAL", "VENTURE"])
+loan_intent = st.selectbox("Intention du prêt", ["PERSONAL", "DEBTCONSOLIDATION", "EDUCATION", "MEDICAL", "VENTURE"])
 loan_grade = st.selectbox("Note de crédit", ["A", "B", "C", "D", "E", "F", "G"])
-default_on_file = st.selectbox("Présence de défaut de paiement sur le fichier", ["Y", "N"])
+default_on_file = st.selectbox("Présence de défaut de paiement", ["Y", "N"])
 
-# Préparation des caractéristiques pour la prédiction
-data = {
-    "person_age": age,
-    "person_income": income,
-    "person_emp_length": emp_length,
-    "loan_amnt": loan_amnt,
-    "loan_int_rate": loan_int_rate,
-    "person_home_ownership": home_ownership,
-    "loan_intent": loan_intent,
-    "loan_grade": loan_grade,
-    "cb_person_default_on_file": default_on_file
-}
+# Encodage des données de l'utilisateur
+user_input = encode_user_input(home_ownership, loan_intent, loan_grade, default_on_file)
 
-# Encodage des caractéristiques catégorielles
-data['person_home_ownership'] = encoder.transform([data['person_home_ownership']])[0]
-data['loan_intent'] = encoder.transform([data['loan_intent']])[0]
-data['loan_grade'] = encoder.transform([data['loan_grade']])[0]
-data['cb_person_default_on_file'] = encoder.transform([data['cb_person_default_on_file']])[0]
+# Standardisation de l'entrée utilisateur
+scaler = joblib.load('scaler.pkl')  # Si vous avez sauvegardé le scaler également
+user_input_scaled = scaler.transform([user_input])
 
-# Standardisation des données
-features = np.array(list(data.values())).reshape(1, -1)
-features_scaled = scaler.fit_transform(features)
-
-# Prédiction avec le modèle chargé
-prediction = model.predict(features_scaled)
-
-# Affichage du résultat
-if prediction == 1:
-    st.write("Le client présente un **risque de défaut**.")
+# Prédiction avec le modèle choisi (Logistique ou Arbre de Décision)
+model_choice = st.radio("Choisir un modèle pour la prédiction", ("Régression Logistique", "Arbre de Décision"))
+if model_choice == "Régression Logistique":
+    prediction = log_reg.predict(user_input_scaled)
 else:
-    st.write("Le client présente **un faible risque de défaut**.")
+    prediction = tree.predict(user_input_scaled)
 
-# Ajout de visualisations
+# Afficher le résultat de la prédiction
+if prediction == 0:
+    st.write("Le client n'est pas à risque de défaut de paiement.")
+else:
+    st.write("Le client est à risque de défaut de paiement.")
 
-# Graphiques : Distribution des âges des clients
-st.subheader("Visualisation des données de distribution")
-plt.figure(figsize=(10, 5))
-sns.histplot(df['person_age'], bins=30, kde=True, color='blue')
-plt.title("Distribution de l'âge des clients")
-st.pyplot(plt)
-
-# Boxplot pour les montants de prêts
-plt.figure(figsize=(10, 5))
-sns.boxplot(x=df['loan_amnt'], color='orange')
-plt.title("Boxplot du montant des prêts")
-st.pyplot(plt)
-
-# Heatmap de la corrélation
-st.subheader("Visualisation des corrélations")
-plt.figure(figsize=(12, 8))
-sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
-plt.title("Heatmap des Corrélations")
-st.pyplot(plt)
-
-# Répartition de l'âge en fonction du statut du prêt
-st.subheader("Répartition de l'âge en fonction du statut du prêt")
-plt.figure(figsize=(10, 5))
-sns.histplot(data=df, x="person_age", hue="loan_status", bins=30, kde=True, palette="viridis")
-plt.title("Répartition de l'âge en fonction du statut du prêt")
-st.pyplot(plt)
-
-# Boxplot des taux d'intérêt en fonction du statut du prêt
-st.subheader("Taux d'intérêt en fonction du statut du prêt")
-plt.figure(figsize=(10, 5))
-sns.boxplot(x=df["loan_status"], y=df["loan_int_rate"], palette="Set2")
-plt.title("Taux d'intérêt en fonction du statut du prêt")
-st.pyplot(plt)
-
-# Graphiques de la performance du modèle (Courbe ROC)
-
-from sklearn.metrics import roc_curve, auc
-
-# Prédiction des probabilités pour la courbe ROC
-y_prob = model.predict_proba(features_scaled)[:, 1]
-
-# Calcul des taux de faux positifs et vrais positifs pour la courbe ROC
-fpr, tpr, _ = roc_curve([0], y_prob)  # '0' est la valeur réelle, ici nous simulons avec une seule prédiction
-
-# Affichage de la courbe ROC
-st.subheader("Courbe ROC du modèle")
-plt.figure(figsize=(8, 6))
-plt.plot(fpr, tpr, label="Courbe ROC")
-plt.plot([0, 1], [0, 1], linestyle="--", color="gray")  # Courbe aléatoire
-plt.xlabel("Taux de faux positifs")
-plt.ylabel("Taux de vrais positifs")
-plt.title("Courbe ROC")
-plt.legend()
-st.pyplot(plt)
+# Affichage des probabilités (si nécessaire)
+probability = log_reg.predict_proba(user_input_scaled)[:, 1]  # Utiliser le modèle logistique pour obtenir des probabilités
+st.write(f"Probabilité de défaut de paiement : {probability[0]:.2f}")
