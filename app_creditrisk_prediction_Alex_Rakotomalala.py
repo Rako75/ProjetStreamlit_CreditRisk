@@ -44,7 +44,7 @@ X_test = scaler.transform(X_test)
 # Entraînement du modèle
 model = DecisionTreeClassifier(max_depth=5, random_state=42)
 model.fit(X_train, y_train)
-joblib.dump(model, 'credit_risk_model.joblib')
+joblib.dump(model, 'arbre_decision_model.joblib')
 
 # Streamlit UI
 st.title("Prédiction du Risque de Crédit")
