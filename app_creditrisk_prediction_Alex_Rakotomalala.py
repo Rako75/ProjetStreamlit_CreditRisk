@@ -17,6 +17,12 @@ tree = joblib.load('arbre_decision_model.joblib')
 # Charger les données
 df = pd.read_csv("credit_risk_dataset.csv", sep=";")
 
+# Appliquer l'encodage sur les colonnes catégorielles du DataFrame
+df['person_home_ownership'] = encoder_home_ownership.transform(df['person_home_ownership'])
+df['loan_intent'] = encoder_loan_intent.transform(df['loan_intent'])
+df['loan_grade'] = encoder_loan_grade.transform(df['loan_grade'])
+df['cb_person_default_on_file'] = encoder_default_on_file.transform(df['cb_person_default_on_file'])
+
 # Fonction de transformation des entrées de l'utilisateur
 def encode_user_input(home_ownership, loan_intent, loan_grade, cb_person_default_on_file):
     try:
