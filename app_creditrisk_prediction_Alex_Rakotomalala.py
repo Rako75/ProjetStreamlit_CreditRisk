@@ -118,7 +118,7 @@ user_input_df = pd.DataFrame([user_input], columns=["person_home_ownership", "lo
 
 # Alignement des colonnes : les autres caractéristiques doivent être extraites de df pour compléter l'entrée
 # Assurez-vous que les colonnes de l'entrée utilisateur correspondent à celles d'entraînement
-user_input_full = np.concatenate([user_input, np.zeros(len(numeric_columns) - 4)])
+user_input_full = np.concatenate([user_input, np.zeros(len(numeric_columns) - len(user_input))])
 
 # Appliquer le scaler uniquement sur les données numériques (qui doivent être sur 11 colonnes)
 user_input_scaled = scaler.transform([user_input_full])
