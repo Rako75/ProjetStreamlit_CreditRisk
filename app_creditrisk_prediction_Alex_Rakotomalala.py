@@ -4,8 +4,9 @@ import numpy as np
 import joblib
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 
-# Charger le modèle
+# Charger le modèle et le scaler
 model = joblib.load("arbre_decision_model.joblib")
+scaler = joblib.load("scaler.joblib")  # Charger le scaler utilisé pendant l'entraînement
 
 # Charger le dataset
 df = pd.read_csv("credit_risk_dataset.csv", sep=";")
@@ -20,10 +21,6 @@ df['cb_person_default_on_file'] = encoder.fit_transform(df['cb_person_default_on
 # Séparer les features et la cible
 X = df.drop(columns=['loan_status'])
 y = df['loan_status']
-
-# Standardisation des données
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
 
 # Créer une interface pour l'utilisateur
 st.title("Prédiction du Risque de Crédit")
@@ -50,7 +47,7 @@ user_data[0, 4] = encoder.transform([user_data[0, 4]])  # loan_intent
 user_data[0, 5] = encoder.transform([user_data[0, 5]])  # loan_grade
 user_data[0, 6] = encoder.transform([user_data[0, 6]])  # cb_person_default_on_file
 
-# Standardisation des nouvelles données
+# Standardisation des nouvelles données en utilisant le même scaler
 user_data_scaled = scaler.transform(user_data)
 
 # Prédiction
