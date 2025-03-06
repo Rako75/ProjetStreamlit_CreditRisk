@@ -113,9 +113,8 @@ st.dataframe(criteria_df)
 
 # Afficher une phrase expliquant le risque
 st.write("""
-Le client est considéré comme étant à risque en fonction des critères suivants :
-- Si un ou plusieurs critères présentent des valeurs élevées (par exemple, un revenu faible, un taux d'intérêt élevé, ou un historique de défaut), cela augmente le risque de crédit.
-- La combinaison de ces facteurs permet de déterminer si le client a une probabilité plus élevée de ne pas rembourser son prêt.
+Le client est considéré comme étant à risque si un ou plusieurs critères présentent des valeurs élevées (par exemple, un revenu faible, un taux d'intérêt élevé, ou un historique de défaut), cela augmente le risque de crédit.
+La combinaison de ces facteurs permet de déterminer si le client a une probabilité plus élevée de ne pas rembourser son prêt.
 """)
 
 # Affichage du résultat de la prédiction
