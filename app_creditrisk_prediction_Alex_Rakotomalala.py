@@ -88,7 +88,7 @@ st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
 # Affichage du sous-titre
 st.write("""
-Cette application permet de prédire le risque de crédit d'un client en fonction de différents critères. En saisissant des informations telles que l'âge, le revenu annuel, la durée de l'emploi, le montant du prêt, etc., l'application vous indiquera si le client présente un risque de défaut de paiement sur son crédit. L'objectif est de faciliter la prise de décision dans l'octroi de crédits.
+But : cette application permet de prédire le risque de crédit d'un client en fonction de différents critères. En saisissant des informations telles que l'âge, le revenu annuel, la durée de l'emploi, le montant du prêt, etc., l'application vous indiquera si le client présente un risque de défaut de paiement sur son crédit. L'objectif est de faciliter la prise de décision dans l'octroi de crédits.
 """)
 
 # Créer un tableau des critères de risque
