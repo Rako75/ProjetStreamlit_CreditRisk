@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import joblib
-import plotly.express as px
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
@@ -89,6 +86,12 @@ prediction = model.predict(input_data)
 st.write("### Résultat de la prédiction:")
 st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
+# Affichage du sous-titre
+st.subheader("Application de prédiction de risque de crédit")
+st.write("""
+Cette application permet de prédire le risque de crédit d'un client en fonction de différents critères. En saisissant des informations telles que l'âge, le revenu annuel, la durée de l'emploi, le montant du prêt, etc., l'application vous indiquera si le client présente un risque de défaut de paiement sur son crédit. L'objectif est de faciliter la prise de décision dans l'octroi de crédits.
+""")
+
 # Créer un tableau des critères de risque
 criteria_df = pd.DataFrame({
     'Critère': ['Âge', 'Revenu annuel', 'Type de logement', 'Durée d\'emploi', 'Motif du prêt', 
@@ -113,21 +116,9 @@ criteria_df = pd.DataFrame({
 st.write("### Tableau des critères de risque")
 st.dataframe(criteria_df)
 
-# Visualisation dynamique avec Plotly
-st.subheader("Visualisation dynamique")
-
-# Créer un graphique en fonction des choix de l'utilisateur
-fig = px.scatter(df, x="loan_int_rate", y="loan_amnt", color="loan_grade",
-                 title="Relation entre le taux d'intérêt et le montant du prêt",
-                 labels={"loan_int_rate": "Taux d'intérêt (%)", "loan_amnt": "Montant du prêt ($)"})
-
-# Mettre à jour le graphique avec les choix de l'utilisateur
-fig.update_traces(marker=dict(size=12, opacity=0.6), selector=dict(mode='markers'))
-
-# Affichage du graphique interactif
-st.plotly_chart(fig)
-
-# Afficher un histogramme dynamique basé sur l'âge
-fig2 = px.histogram(df, x="person_age", title="Distribution des âges des clients",
-                    nbins=30, labels={"person_age": "Âge du client"})
-st.plotly_chart(fig2)
+# Afficher une phrase expliquant le risque
+st.write("""
+Le client est considéré comme étant à risque en fonction des critères suivants :
+- Si un ou plusieurs critères présentent des valeurs élevées (par exemple, un revenu faible, un taux d'intérêt élevé, ou un historique de défaut), cela augmente le risque de crédit.
+- La combinaison de ces facteurs permet de déterminer si le client a une probabilité plus élevée de ne pas rembourser son prêt.
+""")
