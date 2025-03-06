@@ -87,12 +87,14 @@ prediction = model.predict(input_data)
 st.write("### Résultat de la prédiction:")
 st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
-# Visualisation avec un graphique dynamique
-st.subheader("Visualisation du risque client")
+# Visualisation avec des niveaux de risque
 df['prediction'] = model.predict(scaler.transform(X))
 fig = px.scatter(df, x="person_income", y="loan_amnt", color=df['prediction'].map({0: 'Non Risqué', 1: 'À Risque'}),
                  title="Classification des clients selon le risque",
                  labels={"person_income": "Revenu Annuel ($)", "loan_amnt": "Montant du prêt ($)"},
                  color_discrete_map={"Non Risqué": "green", "À Risque": "red"})
+
+# Ajouter la position du client
+fig.add_scatter(x=[income], y=[loan_amnt], mode='markers', marker=dict(size=15, color='blue'), name='Client')
 
 st.plotly_chart(fig)
