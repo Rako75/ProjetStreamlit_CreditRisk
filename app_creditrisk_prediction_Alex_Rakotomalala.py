@@ -87,12 +87,13 @@ prediction = model.predict(input_data)
 st.write("### Résultat de la prédiction:")
 st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
-# Visualisation avec des niveaux de risque
+# Visualisation avec des niveaux de risque et échantillonnage
 df['prediction'] = model.predict(scaler.transform(X))
-fig = px.scatter(df, x="person_income", y="loan_amnt", color=df['prediction'].map({0: 'Non Risqué', 1: 'À Risque'}),
+df_sampled = df.sample(frac=0.3, random_state=42)  # Réduction du nombre de points
+fig = px.scatter(df_sampled, x="person_income", y="loan_amnt", color=df_sampled['prediction'].map({0: 'Non Risqué', 1: 'À Risque'}),
                  title="Classification des clients selon le risque",
                  labels={"person_income": "Revenu Annuel ($)", "loan_amnt": "Montant du prêt ($)"},
-                 color_discrete_map={"Non Risqué": "green", "À Risque": "red"})
+                 color_discrete_map={"Non Risqué": "rgba(0, 128, 0, 0.5)", "À Risque": "red"})
 
 # Ajouter la position du client
 fig.add_scatter(x=[income], y=[loan_amnt], mode='markers', marker=dict(size=15, color='blue'), name='Client')
