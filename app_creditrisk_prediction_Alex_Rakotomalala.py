@@ -44,7 +44,7 @@ model.fit(X_train, y_train)
 joblib.dump(model, 'arbre_decision_model.joblib')
 
 # Streamlit UI
-st.title("Prédiction du Risque de Crédit")
+st.title("Prédiction du Risque de Crédit par Alex Rakotomalala")
 st.sidebar.header("Entrez les informations du client")
 
 # Entrée utilisateur
@@ -87,7 +87,6 @@ st.write("### Résultat de la prédiction:")
 st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
 # Affichage du sous-titre
-st.subheader("Application de prédiction de risque de crédit")
 st.write("""
 Cette application permet de prédire le risque de crédit d'un client en fonction de différents critères. En saisissant des informations telles que l'âge, le revenu annuel, la durée de l'emploi, le montant du prêt, etc., l'application vous indiquera si le client présente un risque de défaut de paiement sur son crédit. L'objectif est de faciliter la prise de décision dans l'octroi de crédits.
 """)
