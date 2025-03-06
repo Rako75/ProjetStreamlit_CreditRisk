@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import joblib
 import plotly.express as px
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -89,21 +87,12 @@ prediction = model.predict(input_data)
 st.write("### Résultat de la prédiction:")
 st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
-# Visualisation dynamique avec Plotly
-st.subheader("Visualisation dynamique")
+# Visualisation avec un graphique dynamique
+st.subheader("Visualisation du risque client")
+df['prediction'] = model.predict(scaler.transform(X))
+fig = px.scatter(df, x="person_income", y="loan_amnt", color=df['prediction'].map({0: 'Non Risqué', 1: 'À Risque'}),
+                 title="Classification des clients selon le risque",
+                 labels={"person_income": "Revenu Annuel ($)", "loan_amnt": "Montant du prêt ($)"},
+                 color_discrete_map={"Non Risqué": "green", "À Risque": "red"})
 
-# Créer un graphique en fonction des choix de l'utilisateur
-fig = px.scatter(df, x="loan_int_rate", y="loan_amnt", color="loan_grade",
-                 title="Relation entre le taux d'intérêt et le montant du prêt",
-                 labels={"loan_int_rate": "Taux d'intérêt (%)", "loan_amnt": "Montant du prêt ($)"})
-
-# Mettre à jour le graphique avec les choix de l'utilisateur
-fig.update_traces(marker=dict(size=12, opacity=0.6), selector=dict(mode='markers'))
-
-# Affichage du graphique interactif
 st.plotly_chart(fig)
-
-# Afficher un histogramme dynamique basé sur l'âge
-fig2 = px.histogram(df, x="person_age", title="Distribution des âges des clients",
-                    nbins=30, labels={"person_age": "Âge du client"})
-st.plotly_chart(fig2)
