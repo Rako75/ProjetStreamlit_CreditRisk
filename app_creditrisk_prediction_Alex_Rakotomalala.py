@@ -89,15 +89,16 @@ st.write("### Résultat de la prédiction:")
 st.write("Client à risque" if prediction[0] == 1 else "Client non risqué")
 
 # Détermination des seuils de risque
-seuil_bas = df[df['loan_status'] == 0]['person_income'].quantile(0.25)
-seuil_haut = df[df['loan_status'] == 1]['person_income'].quantile(0.75)
+seuil_revenu = df['person_income'].quantile([0.25, 0.75])
+seuil_pret = df['loan_amnt'].quantile([0.25, 0.75])
 
 # Création du graphique avec des lignes de seuil
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=df['person_income'], y=df['loan_amnt'], mode='markers', marker=dict(color='gray', opacity=0.3), name='Données'))
 fig.add_trace(go.Scatter(x=[income], y=[loan_amnt], mode='markers', marker=dict(size=15, color='blue'), name='Client'))
-fig.add_trace(go.Scatter(x=[seuil_bas, seuil_bas], y=[df['loan_amnt'].min(), df['loan_amnt'].max()], mode='lines', line=dict(dash='dot', color='red'), name='Limite Non Risqué'))
-fig.add_trace(go.Scatter(x=[seuil_haut, seuil_haut], y=[df['loan_amnt'].min(), df['loan_amnt'].max()], mode='lines', line=dict(dash='dot', color='red'), name='Limite À Risque'))
+fig.add_trace(go.Scatter(x=[seuil_revenu[0.25], seuil_revenu[0.25]], y=[df['loan_amnt'].min(), df['loan_amnt'].max()], mode='lines', line=dict(dash='dot', color='green'), name='Limite Non Risqué'))
+fig.add_trace(go.Scatter(x=[seuil_revenu[0.75], seuil_revenu[0.75]], y=[df['loan_amnt'].min(), df['loan_amnt'].max()], mode='lines', line=dict(dash='dot', color='red'), name='Limite À Risque'))
+fig.add_trace(go.Scatter(x=[df['person_income'].min(), df['person_income'].max()], y=[seuil_pret[0.25], seuil_pret[0.25]], mode='lines', line=dict(dash='dot', color='green'), name='Limite Non Risqué'))
+fig.add_trace(go.Scatter(x=[df['person_income'].min(), df['person_income'].max()], y=[seuil_pret[0.75], seuil_pret[0.75]], mode='lines', line=dict(dash='dot', color='red'), name='Limite À Risque'))
 
 fig.update_layout(title="Classification des clients selon le risque", xaxis_title="Revenu Annuel ($)", yaxis_title="Montant du prêt ($)")
 st.plotly_chart(fig)
